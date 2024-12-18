@@ -8,18 +8,25 @@ def parse_chat(content):
     chat = []
     lines = content.split("\n")
     for line in lines:
-        if "USER:" in line:
-            timestamp, message = line.split("USER: ")
-            time = timestamp.split(" ")[1][:5]  # hh:mm
-            for part in message.split("\n"):
-                if part.strip():  # Ignore empty messages
-                    chat.append(("user", part.strip(), time))
-        elif "TWAIN:" in line:
-            timestamp, message = line.split("TWAIN: ")
-            time = timestamp.split(" ")[1][:5]
-            for part in message.split("|"):
-                if part.strip():  # Ignore empty messages
-                    chat.append(("bot", part.strip(), time))
+        try:
+            # Cas où "USER:" est présent
+            if "USER:" in line:
+                timestamp, message = line.split("USER: ", 1)
+                time = timestamp.split(" ")[1][:5]  # hh:mm
+                for part in message.split("\n"):  # Permet d'avoir des retours à la ligne
+                    if part.strip():
+                        chat.append(("user", part.strip(), time))
+
+            # Cas où "TWAIN" est présent et divisé par "|"
+            elif "TWAIN" in line:
+                timestamp, message = line.split("TWAIN", 1)
+                time = timestamp.split(" ")[1][:5]  # hh:mm
+                for part in message.split("|"):  # Séparation par |
+                    if part.strip():
+                        chat.append(("bot", part.strip(), time))
+        except ValueError:
+            # Ignore les lignes mal formatées
+            continue
     return chat
 
 def display_chat(chat_data):
@@ -28,9 +35,11 @@ def display_chat(chat_data):
     """
     for role, message, time in chat_data:
         if role == "user":
+            # Affiche les messages USER alignés à droite
             st.markdown(f"""
                 <div style="text-align: right; margin: 5px;">
-                    <div style="display: inline-block; background-color: #FFD700; color: black; padding: 10px; border-radius: 10px; max-width: 60%;">
+                    <div style="display: inline-block; background-color: #FFD700; color: black; 
+                                padding: 10px; border-radius: 10px; max-width: 60%; word-wrap: break-word;">
                         <small style="font-size: 10px; color: #333333;">USER</small><br>
                         {message}
                         <div style="text-align: right; font-size: 8px; color: grey;">{time}</div>
@@ -38,9 +47,11 @@ def display_chat(chat_data):
                 </div>
             """, unsafe_allow_html=True)
         else:
+            # Affiche les messages TWAIN alignés à gauche
             st.markdown(f"""
                 <div style="text-align: left; margin: 5px;">
-                    <div style="display: inline-block; background-color: #333333; color: #FFD700; padding: 10px; border-radius: 10px; max-width: 60%;">
+                    <div style="display: inline-block; background-color: #333333; color: #FFD700; 
+                                padding: 10px; border-radius: 10px; max-width: 60%; word-wrap: break-word;">
                         <small style="font-size: 10px; color: #FFD700;">Twains</small><br>
                         {message}
                         <div style="text-align: left; font-size: 8px; color: grey;">{time}</div>
