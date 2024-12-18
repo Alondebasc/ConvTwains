@@ -17,12 +17,12 @@ def parse_chat(content):
                     if part.strip():
                         chat.append(("user", part.strip(), time))
 
-            # Cas où "TWAIN" est présent et divisé par "|"
-            elif "TWAIN" in line:
-                timestamp, message = line.split("TWAIN", 1)
+            # Cas où "TWAIN:" est présent et divisé par "|"
+            elif "TWAIN:" in line:
+                timestamp, message = line.split("TWAIN: ", 1)
                 time = timestamp.split(" ")[1][:5]  # hh:mm
                 for part in message.split("|"):  # Séparation par |
-                    if part.strip():
+                    if part.strip():  # Ignore les sections vides
                         chat.append(("bot", part.strip(), time))
         except ValueError:
             # Ignore les lignes mal formatées
